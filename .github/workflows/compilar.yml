@@ -1,0 +1,36 @@
+name: Compilar
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extrair o projeto do zip mais recente
+        run: |
+          ZIP=$(ls legacybridge*.zip | sort -V | tail -n1)
+          echo "Usando $ZIP"
+          unzip -q "$ZIP" -d projeto
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.8
+
+      - name: Compilar o mod
+        working-directory: projeto/legacybridge
+        run: gradle build --no-daemon
+
+      - name: Guardar o .jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: legacybridge-mod
+          path: projeto/legacybridge/loader/build/libs/legacybridge-*.jar
