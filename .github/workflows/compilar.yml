@@ -9,10 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # histórico completo, para achar o zip adicionado por último
 
       - name: Extrair o projeto do zip mais recente
         run: |
-          ZIP=$(ls legacybridge*.zip | sort -V | tail -n1)
+          # Escolhe o zip pelo commit mais recente (e não pela ordem alfabética do nome)
+          ZIP=$(for f in legacybridge*.zip; do echo "$(git log -1 --format=%ct -- "$f") $f"; done | sort -n | tail -n1 | cut -d' ' -f2-)
           echo "Usando $ZIP"
           unzip -q "$ZIP" -d projeto
 
@@ -27,10 +30,11 @@ jobs:
 
       - name: Compilar o mod
         working-directory: projeto/legacybridge
-        run: gradle build --no-daemon
+        run: gradle build --no-daemon --stacktrace
 
       - name: Guardar o .jar
         uses: actions/upload-artifact@v4
         with:
           name: legacybridge-mod
           path: projeto/legacybridge/loader/build/libs/legacybridge-*.jar
+          if-no-files-found: error
