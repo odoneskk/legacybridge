@@ -16,6 +16,10 @@ jobs:
           echo "Usando $ZIP"
           unzip -q "$ZIP" -d projeto
 
+      - name: Garantir plugin Java no runtime
+        run: |
+          echo "plugins { id 'java' }" >> projeto/legacybridge/runtime/build.gradle
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -27,7 +31,7 @@ jobs:
 
       - name: Compilar o mod
         working-directory: projeto/legacybridge
-        run: gradle build --no-daemon
+        run: gradle :loader:build --no-daemon
 
       - name: Guardar o .jar
         uses: actions/upload-artifact@v4
