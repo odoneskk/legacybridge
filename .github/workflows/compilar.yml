@@ -16,9 +16,18 @@ jobs:
           echo "Usando $ZIP"
           unzip -q "$ZIP" -d projeto
 
-      - name: Aplicar plugin Java no inicio do runtime/build.gradle
+      - name: Garantir plugin Java no runtime
         run: |
-          echo "plugins { id 'java' }" > projeto/legacybridge/runtime/build.gradle
+          python3 -c "
+          path = 'projeto/legacybridge/runtime/build.gradle'
+          with open(path, 'r') as f:
+              content = f.read()
+          if 'java' not in content:
+              content = \"plugins { id 'java' }\n\" + content
+          with open(path, 'w') as f:
+              f.write(content)
+          print('Ficheiro runtime/build.gradle atualizado com sucesso.')
+          "
 
       - uses: actions/setup-java@v4
         with:
